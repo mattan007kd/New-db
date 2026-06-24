@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="ledger">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>SHLOMO // Finance Hub</title>
+<meta name="robots" content="noindex" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Share+Tech+Mono&family=Rajdhani:wght@400;600&family=Frank+Ruhl+Libre:wght@500;700;900&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* ===== THEME TOKENS ===== */
+  [data-theme="ledger"]{
+    --bg:#1c1917; --panel:#23201d; --panel2:#2a2522; --edge:#44403c;
+    --accent:#e6b35a; --accent2:#fde68a; --alert:#cf6a5a; --ok:#9bbb7c;
+    --dim:#a8a29e; --text:#e7e1d8;
+  }
+  [data-theme="hud"]{
+    --bg:#020a14; --panel:#04121f; --panel2:#06192a; --edge:#0a2438;
+    --accent:#00d4ff; --accent2:#0052ff; --alert:#ff3860; --ok:#00ff88;
+    --dim:#5a7a8c; --text:#cfe9f5;
+  }
+
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    min-height:100vh; padding-bottom:env(safe-area-inset-bottom);
+    transition:background .25s, color .25s;
+  }
+  /* body fonts + texture per theme */
+  [data-theme="ledger"] body{ font-family:'IBM Plex Sans',system-ui,sans-serif;
+    background-image:repeating-linear-gradient(0deg, rgba(230,179,90,.035) 0, rgba(230,179,90,.035) 1px, transparent 1px, transparent 34px);
+  }
+  [data-theme="hud"] body{ font-family:'Rajdhani',system-ui,sans-serif;
+    background-image:linear-gradient(rgba(0,212,255,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,.04) 1px,transparent 1px);
+    background-size:36px 36px;
+  }
+
+  .wrap{max-width:920px;margin:0 auto;padding:14px 14px 70px;}
+
+  /* heads */
+  .head{color:var(--accent);}
+  [data-theme="ledger"] .head{font-family:'Frank Ruhl Libre',Georgia,serif;font-weight:700;letter-spacing:.5px;}
+  [data-theme="hud"] .head{font-family:'Orbitron',sans-serif;letter-spacing:4px;}
+  .heb{font-family:'Frank Ruhl Libre',serif;}
+
+  .mono{}
+  [data-theme="ledger"] .mono{font-family:'IBM Plex Mono',ui-monospace,monospace;}
+  [data-theme="hud"] .mono{font-family:'Share Tech Mono',ui-monospace,monospace;}
+  .dim{color:var(--dim);}
+
+  .panel{position:relative;background:var(--panel);border:1px solid var(--edge);padding:16px;margin-top:16px;}
+  [data-theme="ledger"] .panel{border-radius:6px;box-shadow:0 1px 0 rgba(0,0,0,.25);}
+
+  /* corner ticks: HUD only */
+  .bk{position:absolute;width:14px;height:14px;border:0 solid var(--accent);opacity:.6;display:none;}
+  [data-theme="hud"] .bk{display:block;}
+  .bk.tl{top:0;left:0;border-width:2px 0 0 2px}.bk.tr{top:0;right:0;border-width:2px 2px 0 0}
+  .bk.bl{bottom:0;left:0;border-width:0 0 2px 2px}.bk.br{bottom:0;right:0;border-width:0 2px 2px 0}
+
+  input,select,textarea{
+    background:var(--bg);border:1px solid var(--edge);color:var(--text);
+    font-family:'IBM Plex Mono',monospace;font-size:14px;padding:8px;border-radius:4px;
+    outline:none;width:100%;
+  }
+  [data-theme="hud"] input,[data-theme="hud"] select,[data-theme="hud"] textarea{font-family:'Share Tech Mono',monospace;border-radius:3px;}
+  input:focus,select:focus,textarea:focus{border-color:var(--accent);}
+
+  button{
+    font-size:12px;border-radius:4px;padding:10px 18px;cursor:pointer;
+    background:color-mix(in srgb, var(--accent) 12%, transparent);
+    color:var(--accent);border:1px solid var(--accent);
+  }
+  [data-theme="ledger"] button{font-family:'IBM Plex Mono',monospace;letter-spacing:1px;}
+  [data-theme="hud"] button{font-family:'Orbitron',sans-serif;letter-spacing:2px;border-radius:3px;}
+  button:disabled{color:var(--dim);border-color:var(--edge);background:transparent;cursor:wait;}
+  button.ghost{background:none;border:1px dashed var(--edge);color:var(--accent);font-family:'IBM Plex Mono',monospace;letter-spacing:1px;padding:7px 12px;}
+  button.x{background:none;border:none;color:var(--dim);font-size:15px;padding:4px 8px;}
+
+  /* theme switch */
+  .tabs{display:inline-flex;border:1px solid var(--edge);border-radius:6px;overflow:hidden;}
+  .tabs button{border:none;border-radius:0;background:transparent;color:var(--dim);padding:7px 12px;letter-spacing:1px;}
+  .tabs button.on{background:color-mix(in srgb, var(--accent) 16%, transparent);color:var(--accent);}
+
+  .stamp{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--dim);letter-spacing:.5px;word-break:break-all;}
+  [data-theme="hud"] .stamp{font-family:'Share Tech Mono',monospace;}
+  .stamp.bad{color:var(--alert);}
+
+  .total{font-size:38px;color:var(--accent);line-height:1.2;}
+  [data-theme="ledger"] .total{font-family:'Frank Ruhl Libre',serif;font-weight:900;}
+  [data-theme="hud"] .total{font-family:'Orbitron',sans-serif;text-shadow:0 0 18px rgba(0,212,255,.35);}
+
+  .row{display:grid;grid-template-columns:84px 1fr 1.2fr 1.1fr 30px;gap:6px;align-items:center;padding:6px 0;border-top:1px solid color-mix(in srgb, var(--edge) 60%, transparent);}
+  .rowhead{display:grid;grid-template-columns:84px 1fr 1.2fr 1.1fr 30px;gap:6px;font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--dim);letter-spacing:1px;padding-bottom:4px;}
+  [data-theme="hud"] .rowhead{font-family:'Share Tech Mono',monospace;}
+  .acctname{font-size:13px;color:var(--accent);background:transparent;border:1px solid transparent;width:160px;}
+  [data-theme="ledger"] .acctname{font-family:'Frank Ruhl Libre',serif;font-weight:700;}
+  [data-theme="hud"] .acctname{font-family:'Orbitron',sans-serif;letter-spacing:2px;font-size:12px;}
+  .bar{display:flex;height:8px;border:1px solid var(--edge);border-radius:3px;overflow:hidden;margin-top:14px;}
+  .pl-up{color:var(--ok);} .pl-dn{color:var(--alert);}
+  .err{margin-top:10px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--alert);border:1px solid var(--alert);padding:6px 10px;border-radius:4px;}
+  .banner{margin-top:14px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--accent2);border:1px solid var(--accent);background:color-mix(in srgb, var(--accent) 8%, transparent);padding:8px 12px;border-radius:4px;}
+  .footer{margin-top:30px;font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--dim);text-align:center;letter-spacing:1px;}
+  details summary{cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--dim);letter-spacing:1px;}
+  [data-theme="hud"] details summary{font-family:'Share Tech Mono',monospace;}
+  .log{font-family:'IBM Plex Mono',monospace;font-size:11px;padding:3px 0;}
+
+  #gate{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;z-index:50;}
+  #gate .head{font-size:15px;}
+  #gate input{max-width:220px;text-align:center;letter-spacing:4px;}
+  @media (max-width:560px){
+    .row,.rowhead{grid-template-columns:70px 1fr 1fr 1fr 24px;font-size:12px;}
+    .total{font-size:30px;}
+    .acctname{width:120px;}
+  }
+</style>
+</head>
+<body>
+
+<div id="gate">
+  <div class="head">SHLOMO // FINANCE HUB</div>
+  <div class="mono dim heb" style="font-size:12px;">מרכז פיננסי · ENTER ACCESS CODE</div>
+  <input id="gateInput" type="password" autocomplete="off" />
+  <button id="gateBtn">UNLOCK</button>
+  <div id="gateErr" class="mono" style="font-size:11px;color:var(--alert);visibility:hidden;">ACCESS DENIED</div>
+</div>
+
+<div class="wrap" id="app" style="display:none;"></div>
+
+<script>
+"use strict";
+/* =====================================================================
+   SHLOMO // FINANCE HUB — standalone, two themes, no build step.
+   Truth-maximalist: every number carries a source + timestamp.
+   Data lives in THIS browser only (localStorage). The public page ships
+   with SAMPLE numbers; load your real data privately via SETTINGS > IMPORT.
+   Prices: crypto -> coingecko (free) · USD/ILS -> frankfurter/ECB (free)
+           stocks -> finnhub (free key, paste in SETTINGS)
+   ===================================================================== */
+
+const LS_KEY   = "shlomo-finance-hub-v3";
+const GATE_KEY = "shlomo-finance-gate";
+const THEME_KEY= "shlomo-finance-theme";
+const DEFAULT_CODE = "LAPIDOT";
+
+const COINGECKO_IDS = {
+  BTC:"bitcoin", ETH:"ethereum", PAXG:"pax-gold", SOL:"solana", XRP:"ripple",
+  ADA:"cardano", DOGE:"dogecoin", LTC:"litecoin", DOT:"polkadot", LINK:"chainlink",
+  USDT:"tether", USDC:"usd-coin", BNB:"binancecoin", AVAX:"avalanche-2", TON:"the-open-network"
+};
+
+const uid = () => Math.random().toString(36).slice(2,9);
+
+/* ---------- SAMPLE seed (safe to ship publicly) ---------- */
+function seed(){
+  return {
+    sample:true,
+    accounts:[
+      {id:uid(), name:"SAMPLE STOCKS", type:"stocks",
+       note:"These are demo numbers, not real holdings. SETTINGS > IMPORT to load your own.",
+       holdings:[
+         {id:uid(),symbol:"AAPL",qty:10,costBasis:150},
+         {id:uid(),symbol:"MSFT",qty:5, costBasis:300},
+         {id:uid(),symbol:"VOO", qty:8, costBasis:400}]},
+      {id:uid(), name:"SAMPLE CRYPTO", type:"crypto",
+       note:"Demo amounts.",
+       holdings:[
+         {id:uid(),symbol:"BTC",qty:0.1,costBasis:null},
+         {id:uid(),symbol:"ETH",qty:1,  costBasis:null}]},
+      {id:uid(), name:"SAMPLE CASH", type:"cash",
+       note:"Demo cash.",
+       holdings:[
+         {id:uid(),symbol:"USD",qty:1000,costBasis:null},
+         {id:uid(),symbol:"ILS",qty:0,   costBasis:null}]}
+    ],
+    prices:{}, usdIls:null, finnhubKey:"",
+    fetchLog:[{t:Date.now(), note:"SEEDED — sample portfolio (not real). Import your own via SETTINGS."}]
+  };
+}
+
+let S;
+try { S = JSON.parse(localStorage.getItem(LS_KEY)) || seed(); }
+catch(e){ S = seed(); }
+
+let syncing = false;
+let lastErr = null;
+
+function save(){
+  try { localStorage.setItem(LS_KEY, JSON.stringify(S)); }
+  catch(e){ lastErr = "Save failed: " + e.message; }
+}
+
+/* ---------- theme ---------- */
+function applyTheme(t){
+  const theme = (t==="hud") ? "hud" : "ledger";
+  document.documentElement.setAttribute("data-theme", theme);
+  try { localStorage.setItem(THEME_KEY, theme); } catch(e){}
+}
+applyTheme(localStorage.getItem(THEME_KEY) || "ledger");
+
+/* ---------- formatting ---------- */
+const fmtUSD = n => (n==null||isNaN(n)) ? "—" :
+  n.toLocaleString("en-US",{style:"currency",currency:"USD",maximumFractionDigits:n>=1000?0:2});
+const fmtTime = ts => !ts ? "never" :
+  new Date(ts).toLocaleString("en-GB",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"});
+const ageH = ts => ts ? (Date.now()-ts)/36e5 : Infinity;
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+function stamp(p){
+  if(!p) return '<span class="stamp bad">NO SOURCE — press SYNC</span>';
+  const stale = ageH(p.fetchedAt) > 24;
+  return '<span class="stamp'+(stale?' bad':'')+'">['+esc(p.source||"unknown")+' @ '+fmtTime(p.fetchedAt)+(stale?' · STALE':'')+']</span>';
+}
+
+/* ---------- valuation ---------- */
+function priceFor(acct,h){
+  const sym = (h.symbol||"").trim().toUpperCase();
+  if(!sym) return null;
+  if(acct.type==="cash"){
+    if(sym==="USD") return {usd:1, source:"definition", fetchedAt:Date.now()};
+    if(sym==="ILS" && S.usdIls) return {usd:1/S.usdIls.rate, source:S.usdIls.source, fetchedAt:S.usdIls.fetchedAt};
+    return null;
+  }
+  return S.prices[sym] || null;
+}
+function valueOf(acct,h){
+  const p = priceFor(acct,h); const q = Number(h.qty)||0;
+  return p ? q*p.usd : null;
+}
+
+/* ---------- sync ---------- */
+function log(note){ S.fetchLog.unshift({t:Date.now(), note}); S.fetchLog = S.fetchLog.slice(0,30); }
+
+async function sync(){
+  if(syncing) return;
+  syncing = true; lastErr = null; render();
+  const now = Date.now();
+  const cryptoSyms=[], stockSyms=[];
+  for(const a of S.accounts){
+    for(const h of a.holdings){
+      const sym=(h.symbol||"").trim().toUpperCase();
+      if(!sym) continue;
+      if(a.type==="crypto" && !cryptoSyms.includes(sym)) cryptoSyms.push(sym);
+      if(a.type==="stocks" && !stockSyms.includes(sym)) stockSyms.push(sym);
+    }
+  }
+  const errs=[];
+
+  if(cryptoSyms.length){
+    try{
+      const ids = cryptoSyms.map(s=>COINGECKO_IDS[s]||s.toLowerCase()).join(",");
+      const r = await fetch("https://api.coingecko.com/api/v3/simple/price?ids="+encodeURIComponent(ids)+"&vs_currencies=usd");
+      if(!r.ok) throw new Error("HTTP "+r.status);
+      const j = await r.json();
+      let got=0;
+      cryptoSyms.forEach(s=>{
+        const id = COINGECKO_IDS[s]||s.toLowerCase();
+        if(j[id] && j[id].usd!=null){ S.prices[s]={usd:j[id].usd, source:"coingecko.com", fetchedAt:now}; got++; }
+      });
+      log("SYNC crypto ok — "+got+"/"+cryptoSyms.length+" via coingecko.com");
+      if(got<cryptoSyms.length) errs.push("Some crypto symbols not recognized by CoinGecko");
+    }catch(e){ errs.push("Crypto: "+e.message); log("SYNC crypto FAILED — "+e.message); }
+  }
+
+  try{
+    const r = await fetch("https://api.frankfurter.app/latest?from=USD&to=ILS");
+    if(!r.ok) throw new Error("HTTP "+r.status);
+    const j = await r.json();
+    if(j.rates && j.rates.ILS){
+      S.usdIls = {rate:j.rates.ILS, source:"frankfurter.app (ECB)", fetchedAt:now};
+      log("SYNC USD/ILS ok — "+j.rates.ILS+" via frankfurter.app");
+    } else throw new Error("no ILS in response");
+  }catch(e){ errs.push("FX: "+e.message); log("SYNC USD/ILS FAILED — "+e.message); }
+
+  if(stockSyms.length){
+    if(!S.finnhubKey){
+      errs.push("Stocks skipped — paste a free Finnhub key in SETTINGS below");
+      log("SYNC stocks skipped — no Finnhub key");
+    } else {
+      let got=0;
+      const quote = async (s)=>{
+        const r = await fetch("https://finnhub.io/api/v1/quote?symbol="+encodeURIComponent(s)+"&token="+encodeURIComponent(S.finnhubKey));
+        if(!r.ok) throw new Error("HTTP "+r.status);
+        const j = await r.json();
+        return (j.c && j.c>0) ? j.c : null;
+      };
+      for(const s of stockSyms){
+        try{
+          let px = await quote(s);
+          if(px==null && s.includes(".")) px = await quote(s.replace(/\./g,"-"));
+          if(px==null && s.includes("-")) px = await quote(s.replace(/-/g,"."));
+          if(px!=null){ S.prices[s]={usd:px, source:"finnhub.io", fetchedAt:now}; got++; }
+        }catch(e){ /* per-symbol */ }
+      }
+      log("SYNC stocks — "+got+"/"+stockSyms.length+" via finnhub.io");
+      if(got<stockSyms.length) errs.push("Stocks: "+(stockSyms.length-got)+" symbol(s) failed — check ticker or key");
+    }
+  }
+
+  lastErr = errs.length ? errs.join(" · ") : null;
+  syncing = false; save(); render();
+}
+
+/* ---------- mutations ---------- */
+function findAcct(id){ return S.accounts.find(a=>a.id===id); }
+
+document.addEventListener("change", e=>{
+  const t = e.target;
+  const aid = t.dataset.acct, hid = t.dataset.holding, f = t.dataset.field;
+  if(f==="finnhubKey"){ S.finnhubKey = t.value.trim(); save(); return; }
+  if(f==="gatecode"){ if(t.value.trim()){ localStorage.setItem(GATE_KEY, t.value.trim()); } return; }
+  if(!aid) return;
+  const a = findAcct(aid); if(!a) return;
+  S.sample = false;
+  if(f==="name"){ a.name=t.value; save(); render(); return; }
+  if(f==="type"){ a.type=t.value; save(); render(); return; }
+  if(hid){
+    const h = a.holdings.find(x=>x.id===hid); if(!h) return;
+    if(f==="symbol") h.symbol = t.value;
+    if(f==="qty") h.qty = t.value;
+    if(f==="costBasis") h.costBasis = t.value || null;
+    save(); render();
+  }
+});
+
+document.addEventListener("click", e=>{
+  const themeBtn = e.target.closest("[data-theme-set]");
+  if(themeBtn){ applyTheme(themeBtn.dataset.themeSet); render(); return; }
+
+  const b = e.target.closest("[data-action]");
+  if(!b) return;
+  const act = b.dataset.action, aid = b.dataset.acct, hid = b.dataset.holding;
+  if(act==="sync") return void sync();
+  if(act==="addAccount"){ S.sample=false; S.accounts.push({id:uid(),name:"NEW ACCOUNT",type:"stocks",holdings:[{id:uid(),symbol:"",qty:0,costBasis:null}]}); }
+  if(act==="delAccount"){ S.accounts = S.accounts.filter(a=>a.id!==aid); }
+  if(act==="addHolding"){ S.sample=false; const a=findAcct(aid); if(a) a.holdings.push({id:uid(),symbol:"",qty:0,costBasis:null}); }
+  if(act==="delHolding"){ const a=findAcct(aid); if(a) a.holdings = a.holdings.filter(h=>h.id!==hid); }
+  if(act==="importData"){
+    const box = document.getElementById("importBox");
+    try{
+      const parsed = JSON.parse(box.value);
+      const accts = Array.isArray(parsed) ? parsed : parsed.accounts;
+      if(!Array.isArray(accts)) throw new Error("expected an array of accounts or {accounts:[...]}");
+      accts.forEach(a=>{ if(!a.id) a.id=uid(); (a.holdings||[]).forEach(h=>{ if(!h.id) h.id=uid(); }); });
+      S.accounts = accts; S.sample=false;
+      log("IMPORT ok — "+accts.length+" account(s) loaded into this browser");
+      save(); render();
+    }catch(err){ lastErr = "Import failed: "+err.message; render(); }
+    return;
+  }
+  if(act==="exportData"){
+    const out = JSON.stringify({accounts:S.accounts}, null, 2);
+    const box = document.getElementById("importBox");
+    if(box){ box.value = out; box.focus(); box.select(); }
+    return;
+  }
+  if(act==="wipe"){
+    if(confirm("Erase all data in THIS browser and reload the sample?")){
+      localStorage.removeItem(LS_KEY); S = seed(); save(); render();
+    }
+    return;
+  }
+  save(); render();
+});
+
+/* ---------- render ---------- */
+function render(){
+  const theme = document.documentElement.getAttribute("data-theme");
+  const totals = S.accounts.map(a=>({
+    id:a.id,
+    total:a.holdings.reduce((s,h)=>{const v=valueOf(a,h); return v==null?s:s+v;},0),
+    unknown:a.holdings.some(h=>(Number(h.qty)||0)>0 && valueOf(a,h)==null)
+  }));
+  const grand = totals.reduce((s,t)=>s+t.total,0);
+  const anyUnknown = totals.some(t=>t.unknown);
+  const colors=["var(--accent)","var(--accent2)","var(--ok)","var(--alert)","#b48cff"];
+
+  let html = `
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;">
+    <div>
+      <div class="head" style="font-size:18px;">SHLOMO <span style="opacity:.5;">//</span> FINANCE HUB</div>
+      <div class="mono dim heb" style="font-size:11px;margin-top:2px;">מרכז פיננסי · truth-maximalist · vault: this browser only</div>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+      <div class="tabs">
+        <button data-theme-set="ledger" class="${theme==="ledger"?"on":""}">ספר LEDGER</button>
+        <button data-theme-set="hud" class="${theme==="hud"?"on":""}">HUD</button>
+      </div>
+      <button data-action="sync" ${syncing?"disabled":""}>${syncing?"SYNCING…":"SYNC PRICES"}</button>
+    </div>
+  </div>
+  ${S.sample?`<div class="banner">SAMPLE DATA — these are demo numbers, not your real holdings. Open SETTINGS below and IMPORT your own. Your data then lives only in this browser.</div>`:""}
+  ${lastErr?`<div class="err">${esc(lastErr)}</div>`:""}
+
+  <div class="panel">
+    <span class="bk tl"></span><span class="bk tr"></span><span class="bk bl"></span><span class="bk br"></span>
+    <div class="mono dim" style="font-size:10px;letter-spacing:2px;">TOTAL PORTFOLIO (USD) · <span class="heb">סך התיק</span></div>
+    <div class="total">${fmtUSD(grand)}${anyUnknown?'<span style="font-size:14px;color:var(--alert);margin-left:10px;">+UNPRICED</span>':""}</div>
+    <div style="margin-top:6px;">
+      ${S.usdIls
+        ? `<span class="mono" style="font-size:12px;">≈ ₪${(grand*S.usdIls.rate).toLocaleString("en-US",{maximumFractionDigits:0})} ${stamp(S.usdIls)}</span>`
+        : `<span class="mono dim" style="font-size:11px;">ILS value appears after first SYNC (<span class="heb">שקלים אחרי סנכרון</span>)</span>`}
+    </div>`;
+
+  if(grand>0){
+    html += `<div class="bar">`;
+    S.accounts.forEach((a,i)=>{
+      const t=totals.find(x=>x.id===a.id); const pct=t? t.total/grand*100 : 0;
+      if(pct>0) html+=`<div style="width:${pct}%;background:${colors[i%colors.length]};opacity:.85;" title="${esc(a.name)} ${pct.toFixed(1)}%"></div>`;
+    });
+    html += `</div><div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:6px;">`;
+    S.accounts.forEach((a,i)=>{
+      const t=totals.find(x=>x.id===a.id); const pct=grand>0&&t?(t.total/grand*100).toFixed(1):"0";
+      html+=`<span class="mono dim" style="font-size:10px;"><span style="color:${colors[i%colors.length]};">■</span> ${esc(a.name)} ${pct}%</span>`;
+    });
+    html += `</div>`;
+  }
+  html += `</div>`;
+
+  for(const a of S.accounts){
+    const t = totals.find(x=>x.id===a.id);
+    html += `
+    <div class="panel">
+      <span class="bk tl"></span><span class="bk tr"></span><span class="bk bl"></span><span class="bk br"></span>
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
+        <input class="acctname" value="${esc(a.name)}" data-acct="${a.id}" data-field="name" />
+        <div style="display:flex;align-items:center;gap:10px;">
+          <select data-acct="${a.id}" data-field="type" style="width:auto;font-size:11px;">
+            <option value="stocks" ${a.type==="stocks"?"selected":""}>stocks</option>
+            <option value="crypto" ${a.type==="crypto"?"selected":""}>crypto</option>
+            <option value="cash" ${a.type==="cash"?"selected":""}>cash</option>
+          </select>
+          <span class="mono" style="font-size:15px;">${fmtUSD(t?t.total:0)}</span>
+          <button class="x" data-action="delAccount" data-acct="${a.id}" title="Delete account">✕</button>
+        </div>
+      </div>
+      ${a.note?`<div class="mono dim" style="font-size:10px;margin-top:4px;">${esc(a.note)}</div>`:""}
+      <div class="rowhead" style="margin-top:10px;"><span>SYMBOL</span><span>QTY</span><span>PRICE / SOURCE</span><span>VALUE · P&amp;L</span><span></span></div>`;
+    for(const h of a.holdings){
+      const p = priceFor(a,h);
+      const v = valueOf(a,h);
+      const pl = (h.costBasis && v!=null && Number(h.costBasis)>0) ? v-Number(h.costBasis) : null;
+      html += `
+      <div class="row">
+        <input value="${esc(h.symbol||"")}" placeholder="SYM" style="text-transform:uppercase;" data-acct="${a.id}" data-holding="${h.id}" data-field="symbol" />
+        <input type="number" inputmode="decimal" step="any" value="${esc(h.qty??0)}" data-acct="${a.id}" data-holding="${h.id}" data-field="qty" />
+        <div style="min-width:0;">
+          <div class="mono" style="font-size:13px;${p?"":"color:var(--alert);"}">${p?fmtUSD(p.usd):"—"}</div>
+          ${stamp(p)}
+        </div>
+        <div>
+          <div class="mono" style="font-size:13px;">${v==null?"—":fmtUSD(v)}</div>
+          ${a.type!=="cash"?`<input type="number" inputmode="decimal" step="any" value="${esc(h.costBasis??"")}" placeholder="cost basis $" style="font-size:10px;margin-top:3px;" data-acct="${a.id}" data-holding="${h.id}" data-field="costBasis" />`:""}
+          ${pl!=null?`<div class="mono ${pl>=0?"pl-up":"pl-dn"}" style="font-size:10px;">${pl>=0?"▲":"▼"} ${fmtUSD(Math.abs(pl))}</div>`:""}
+        </div>
+        <button class="x" data-action="delHolding" data-acct="${a.id}" data-holding="${h.id}" title="Remove">✕</button>
+      </div>`;
+    }
+    html += `<button class="ghost" data-action="addHolding" data-acct="${a.id}" style="margin-top:8px;">+ ADD HOLDING</button></div>`;
+  }
+
+  html += `<button data-action="addAccount" style="margin-top:16px;width:100%;border-style:dashed;background:none;">+ ADD ACCOUNT</button>`;
+
+  // settings + import + evidence
+  html += `
+  <details class="panel" style="padding:12px 16px;">
+    <summary>▸ SETTINGS · IMPORT · <span class="heb">הגדרות</span></summary>
+    <div style="margin-top:12px;">
+      <div class="mono dim" style="font-size:10px;letter-spacing:1px;">FINNHUB API KEY (US stock prices — free at finnhub.io/register)</div>
+      <input value="${esc(S.finnhubKey||"")}" placeholder="paste key here" data-field="finnhubKey" style="margin-top:5px;" />
+
+      <div class="mono dim" style="font-size:10px;letter-spacing:1px;margin-top:14px;">IMPORT / EXPORT YOUR DATA (stays in this browser)</div>
+      <textarea id="importBox" rows="5" placeholder='paste your portfolio JSON here, then press IMPORT' style="margin-top:5px;"></textarea>
+      <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;">
+        <button data-action="importData">IMPORT INTO THIS BROWSER</button>
+        <button class="ghost" data-action="exportData">EXPORT CURRENT → box</button>
+      </div>
+
+      <div class="mono dim" style="font-size:10px;letter-spacing:1px;margin-top:14px;">CHANGE ACCESS CODE</div>
+      <input type="text" placeholder="new code, press enter" data-field="gatecode" style="margin-top:5px;" />
+
+      <div style="margin-top:14px;"><button class="x" data-action="wipe" style="color:var(--alert);border:1px solid var(--alert);border-radius:4px;padding:6px 10px;">ERASE THIS BROWSER &amp; RELOAD SAMPLE</button></div>
+
+      <div class="mono dim" style="font-size:9px;margin-top:10px;">Honest note: the access code is a curtain, not a safe — anyone with this link can view the page. Your real protection is that your numbers live only in your own browser and are never sent to a server.</div>
+    </div>
+  </details>
+
+  <details class="panel" style="padding:12px 16px;">
+    <summary>▸ EVIDENCE LOG (${S.fetchLog.length}) · <span class="heb">יומן ראיות</span></summary>
+    <div style="margin-top:8px;">
+      ${S.fetchLog.length===0?'<div class="mono dim" style="font-size:11px;">No syncs yet. Every fetch — success or failure — is recorded here. Mistakes stay visible.</div>':""}
+      ${S.fetchLog.map(l=>`<div class="log" style="color:${(l.note.includes("FAILED")||l.note.includes("skipped"))?"var(--alert)":"var(--text)"};">${fmtTime(l.t)} · ${esc(l.note)}</div>`).join("")}
+    </div>
+  </details>
+
+  <div class="footer">DATA STAYS IN THIS BROWSER · BUILT ON WISDOM (<span class="heb">חכמה</span>) · NOT FINANCIAL ADVICE</div>`;
+
+  document.getElementById("app").innerHTML = html;
+}
+
+/* ---------- gate ---------- */
+function unlock(){
+  const code = localStorage.getItem(GATE_KEY) || DEFAULT_CODE;
+  const v = document.getElementById("gateInput").value;
+  if(v === code){
+    document.getElementById("gate").style.display="none";
+    document.getElementById("app").style.display="block";
+    render();
+  } else {
+    document.getElementById("gateErr").style.visibility="visible";
+  }
+}
+document.getElementById("gateBtn").addEventListener("click", unlock);
+document.getElementById("gateInput").addEventListener("keydown", e=>{ if(e.key==="Enter") unlock(); });
+</script>
+</body>
+</html>
